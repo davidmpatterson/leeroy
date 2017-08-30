@@ -1,0 +1,55 @@
+#!/bin/bash
+
+export LEEROY_CONFIG="/tmp/settings.py"
+export PORT=80
+
+[[ -z $LEEROY_DEBUG ]]                && LEEROY_DEBUG="True"
+[[ -z $LEEROY_SERVER_NAME ]]          && LEEROY_SERVER_NAME="scout-leeroy.herokuapp.com"
+[[ -z $LEEROY_GITHUB_VERIFY ]]        && LEEROY_GITHUB_VERIFY="True"
+[[ -z $LEEROY_GITHUB_TOKEN ]]         && LEEROY_GITHUB_TOKEN=""
+[[ -z $LEEROY_GITHUB_REGISTER_REPO ]] && LEEROY_GITHUB_REGISTER_REPO="False"
+[[ -z $LEEROY_JENKINS_VERIFY ]]       && LEEROY_JENKINS_VERIFY="True"
+[[ -z $LEEROY_JENKINS_URL ]]          && LEEROY_JENKINS_URL="https://jenkins-ci.goscoutgo.com"
+[[ -z $LEEROY_JENKINS_USER ]]         && LEEROY_JENKINS_USER=""
+[[ -z $LEEROY_JENKINS_PASSWORD ]]     && LEEROY_JENKINS_PASSWORD=""
+[[ -z $LEEROY_JENKINS_BUILD_TOKEN ]]  && LEEROY_JENKINS_BUILD_TOKEN=""
+[[ -z $LEEROY_JENKINS_AUTH_TOKEN_ROOT_BUILD ]] && LEEROY_JENKINS_AUTH_TOKEN_ROOT_BUILD="True"
+[[ -z $LEEROY_BUILD_COMMITS ]]        && LEEROY_BUILD_COMMITS="New"
+
+cat > $LEEROY_CONFIG <<_EOF
+DEBUG = ${LEEROY_DEBUG}
+LOGGING_CONF = "logging.conf"
+LOGGER_NAME = "leeroy"
+SERVER_NAME = "${LEEROY_SERVER_NAME}"
+GITHUB_API_BASE = "https://api.github.com"
+GITHUB_VERIFY = ${LEEROY_GITHUB_VERIFY}
+GITHUB_TOKEN = "${LEEROY_GITHUB_TOKEN}"
+GITHUB_CONTEXT = "leeroy/jenkins"
+GITHUB_REGISTER_REPO_HOOKS = ${LEEROY_GITHUB_REGISTER_REPO}
+JENKINS_VERIFY = ${LEEROY_JENKINS_VERIFY}
+JENKINS_URL = "${LEEROY_JENKINS_URL}"
+JENKINS_USER = "${LEEROY_JENKINS_USER}"
+JENKINS_PASSWORD = "${LEEROY_JENKINS_PASSWORD}"
+JENKINS_BUILD_TOKEN = "${LEEROY_JENKINS_BUILD_TOKEN}"
+JENKINS_AUTH_TOKEN_ROOT_BUILD = "${LEEROY_JENKINS_AUTH_TOKEN_ROOT_BUILD}"
+BUILD_COMMITS = "${LEEROY_BUILD_COMMITS}"
+REPOSITORIES = [
+    {"github_repo": "scoutexchange/milton-ops",
+     "jenkins_job_name": "milton-ops"},
+    {"github_repo": "scoutexchange/milton-puppet",
+     "jenkins_job_name": "milton-puppet"},
+    {"github_repo": "scoutexchange/milton-tpx",
+     "jenkins_job_name": "milton-tpx-github"},
+    {"github_repo": "scoutexchange/scout-app",
+     "jenkins_job_name": "scout-app-github"},
+]
+_EOF
+
+pushd $(dirname $0)/..
+
+if [ "$#" = 0 ]; then
+    uwsgi --ini uwsgi.ini
+fi
+
+exec "$@"
+
